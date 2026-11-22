@@ -75,3 +75,58 @@ Flat `zoetty/` package, `pyproject.toml` (hatchling, click, rich, dev group as p
 - [x] `CHANGELOG.md` 0.1.0 entry, copied to `docs/CHANGELOG.md`
 - [x] CI green on GitHub
 - [ ] Released to PyPI and docs deployed (Paul, via `paulrun PUBLISHING.md`)
+
+# Play once, pause and replay
+
+Status: done, CI green (2026-11-22). Plan: [tasks/plan.md](plan.md#play-once-pause-and-replay).
+
+From user feedback: "I just want to be able to read what it's actually doing at the end."
+
+## Task 12: `loop` (SVG and HTML)
+
+- [x] `loop = true | false | N` loads; `0`, negatives and other types are errors
+- [x] `loop = true` output is byte-for-byte unchanged
+- [x] Otherwise every animation plays N times and holds its end; the fade plays N-1 times and doesn't hold, so the clip ends on the full final frame
+- [x] The final caret stays visible (and blinking) once the clip stops
+- [x] Docs: clip format, changelog
+
+## Task 13: `pause_on_hover` (SVG and HTML)
+
+- [x] `pause_on_hover = true` pauses on hover of the screen, and on keyboard focus in the clip; default off and unchanged output
+- [x] In HTML, the pause is scoped to the screen so the replay button doesn't freeze the clip
+- [x] Docs: clip format, embedding, changelog
+
+## Task 14: HTML replay button
+
+- [x] Only when `loop` isn't `true`; hidden until every play has finished; hidden under reduced motion
+- [x] Holding it removes the animations, letting go restarts them (and hides the button until the next finish)
+- [x] `role="img"` moves onto the screen when there's a button, so the button is reachable by assistive tech
+- [x] Checked in Chromium with a mouse click and the keyboard
+- [x] Docs: embedding, a play-once example, changelog
+
+## Task 15: SVG replay docs
+
+- [x] Embedding: wrap the image in a link to the SVG to replay it; a clip in an `<img>` starts on page load, not when scrolled to
+
+# Theme presets
+
+Status: done (2026-11-22). Plan: [tasks/plan.md](plan.md#theme-presets).
+
+## Task 16: presets and loading
+
+- [x] `zoetty/themes.py`: the default and 17 presets, each with exactly the nine theme keys
+- [x] `theme = "<name>"` and `[theme] name = "<name>"` load the preset, table colours override it
+- [x] Unknown names, and non-string names, are errors listing the presets
+- [x] No theme, or a table without `name`, builds exactly as before
+
+## Task 17: docs and dogfood
+
+- [x] Themes page: a gallery clip per preset, checked in the test suite
+- [x] The default theme as a `[theme]` table, and the HTML CSS variables and classes, tested against the code
+- [x] Clip format, spec, embedding, agents, changelog
+
+## Task 18: `zoetty themes`
+
+- [x] `zoetty themes` lists every preset with swatches
+- [x] `zoetty themes NAME` prints the preset as a `[theme]` table that loads; unknown names fail listing the presets
+- [x] Docs: command line, changelog

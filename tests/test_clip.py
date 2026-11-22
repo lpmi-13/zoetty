@@ -1,8 +1,11 @@
+import tomllib
 from pathlib import Path
 
 import pytest
 
-from zoetty.clip import DEFAULT_PROMPT, THEME, ClipError, load
+from zoetty.clip import DEFAULT_PROMPT, ClipError, load
+from zoetty.themes import DEFAULT as THEME
+from zoetty.themes import PRESETS
 
 MINIMAL = """
 label = "A clip"
@@ -24,6 +27,7 @@ def test_minimal_spec_gets_defaults(spec, tmp_path):
     assert clip.label == "A clip"
     assert clip.out == [tmp_path / "clip.svg"]
     assert (clip.cols, clip.rows, clip.title, clip.chrome) == (80, None, "", True)
+    assert clip.loop is True and clip.pause_on_hover is False
     assert clip.prompt == DEFAULT_PROMPT and clip.final_prompt is None
     assert clip.theme == THEME
     assert clip.record.cwd == tmp_path and clip.record.setup == [] and clip.record.env == {}
@@ -48,6 +52,8 @@ def test_every_key(spec, tmp_path):
             hold = 2
             duration = 30
             chrome = false
+            loop = 2
+            pause_on_hover = true
 
             [record]
             cwd = "work"
@@ -89,6 +95,7 @@ def test_every_key(spec, tmp_path):
         2,
         30,
     )
+    assert clip.loop == 2 and clip.plays == 2 and clip.pause_on_hover is True
     assert clip.chrome is False and clip.final_prompt == "> " and clip.title == "~/x"
     assert clip.record.cwd == tmp_path / "work" and clip.record.env == {"NAME": "Paul"} and clip.record.timeout == 5
     assert clip.theme["bg"] == "#282c34" and clip.theme["red"] == "#e06" and clip.theme["fg"] == THEME["fg"]
@@ -201,7 +208,7 @@ def test_runs_or_steps_but_not_both_or_neither(spec):
 def test_wrongly_shaped_tables_are_reported_not_crashed_on(spec):
     found = problems(spec('label = "x"\nrecord = 1\ntheme = 2\nrun = 3\nout = "a.svg"'))
     assert "record should be a table, got 1" in found
-    assert "theme should be a table, got 2" in found
+    assert "theme should be a preset name or a table, got 2" in found
     assert "run should be a list of tables, got 3" in found
     assert "out should be a list of str, got 'a.svg'" in found
 
@@ -222,3 +229,39 @@ def test_step_problems(spec):
 def test_list_of_markup_must_be_a_list_of_strings(spec):
     found = problems(spec('label = "x"\n[[run]]\ncmd = "ls"\nlines = "hi"\n'))
     assert found == ["run 1: lines should be a list of markup, got 'hi'"]
+
+
+@pytest.mark.parametrize(("value", "plays"), [("true", None), ("false", 1), ("1", 1), ("3", 3)])
+def test_loop(spec, value, plays):
+    clip = load(spec(f"loop = {value}\n" + MINIMAL))
+    assert clip.plays == plays
+
+
+def test_loop_defaults_to_for_ever(spec):
+    assert load(spec(MINIMAL)).plays is None
+
+
+@pytest.mark.parametrize("value", ["0", "-2", "1.5", '"once"'])
+def test_loop_must_be_a_bool_or_a_positive_int(spec, value):
+    assert problems(spec(f"loop = {value}\n" + MINIMAL)) == [
+        f"loop should be true, false or a number of plays (1 or more), got {tomllib.loads(f'v = {value}')['v']!r}"
+    ]
+
+
+def test_theme_picks_a_preset_by_name(spec):
+    clip = load(spec('theme = "dracula"\n' + MINIMAL))
+    assert clip.theme == PRESETS["dracula"]
+
+
+def test_theme_table_name_picks_a_preset_and_colours_override_it(spec):
+    clip = load(spec(MINIMAL + '\n[theme]\nname = "nord"\nbg = "#000"\n'))
+    assert clip.theme == PRESETS["nord"] | {"bg": "#000"}
+
+
+@pytest.mark.parametrize("theme", ['theme = "pink"', '[theme]\nname = "pink"', "[theme]\nname = 3"])
+def test_unknown_theme_names_list_the_presets(spec, theme):
+    top = theme.startswith("theme")
+    [problem] = problems(spec(theme + "\n" + MINIMAL if top else MINIMAL + "\n" + theme))
+    where = "theme" if top else "theme.name"
+    assert problem.startswith(f"{where} should be one of catppuccin-latte, catppuccin-mocha, dracula,")
+    assert problem.endswith(f"tokyo-night, got {'3' if '3' in theme else repr('pink')}")

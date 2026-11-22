@@ -55,6 +55,14 @@ Then put it in your README like any image:
 
 Next: [the clip format](clip-format.md), [embedding clips](embedding.md) and [examples](examples.md).
 
+## Themes
+
+Pick from 17 themes with one line, `theme = "dracula"`: Catppuccin, Dracula, Monokai, Nord, Gruvbox, Solarized, Tokyo Night and more.
+
+![All 17 theme presets side by side, each a small terminal window showing text in every colour of the theme](images/themes.png)
+
+See [all the themes](themes.md), and how to make your own.
+
 ## Use it with your coding agent
 
 Paste this into Claude Code, Codex, Cursor or similar:

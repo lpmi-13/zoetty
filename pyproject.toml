@@ -1,6 +1,6 @@
 [project]
 name = "zoetty"
-version = "0.1.0"
+version = "0.2.0"
 description = "Looping terminal demo clips as plain SVG or HTML and CSS"
 readme = "README.md"
 authors = [{ name = "Paul Hallett", email = "paulandrewhallett@gmail.com" }]
@@ -99,7 +99,7 @@ layers = [
     "zoetty.record | zoetty.svg | zoetty.html",
     "zoetty.timeline",
     "zoetty.clip",
-    "zoetty.ansi",
+    "zoetty.ansi | zoetty.themes",
     "zoetty.markup",
     "zoetty.settings",
 ]
@@ -121,6 +121,7 @@ source_modules = [
     "zoetty.timeline",
     "zoetty.clip",
     "zoetty.ansi",
+    "zoetty.themes",
     "zoetty.markup",
     "zoetty.settings",
 ]
