@@ -52,9 +52,9 @@ def test_included_and_linked_clips_exist(page):
         assert (DOCS / name).exists(), name
 
 
-def test_readme_clips_use_full_urls_so_they_work_on_pypi():
+def test_readme_images_use_full_urls_so_they_work_on_pypi():
     readme = re.sub(r"^```.*?^```", "", (ROOT / "README.md").read_text(), flags=re.MULTILINE | re.DOTALL)
-    images = re.findall(r"!\[[^\]]*\]\(([^)]+\.svg)\)", readme)
+    images = re.findall(r"!\[[^\]]*\]\(([^)]+\.(?:svg|png))\)", readme)
     assert images and all(url.startswith("https://raw.githubusercontent.com/phalt/zoetty/main/") for url in images)
 
 

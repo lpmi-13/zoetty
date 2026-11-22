@@ -10,8 +10,6 @@ The presets are the themes people most often use in their terminal and editor, w
 
 ## Presets
 
-![All 17 theme presets side by side, each a small terminal window showing text in every colour of the theme](images/themes.png)
-
 | `theme =` | |
 |---|---|
 | `catppuccin-latte` | ![The catppuccin-latte theme: a terminal showing text in each of its colours](clips/themes/catppuccin-latte.svg) |

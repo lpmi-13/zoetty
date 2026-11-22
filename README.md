@@ -106,6 +106,14 @@ Long output scrolls once it passes `rows`, and `[theme]` recolours the whole win
 
 See [more examples](https://phalt.github.io/zoetty/examples/), including the HTML output and hand-timed clips.
 
+## Themes
+
+Pick from 17 themes with one line, `theme = "dracula"`: Catppuccin, Dracula, Monokai, Nord, Gruvbox, Solarized, Tokyo Night and more.
+
+![All 17 theme presets side by side, each a small terminal window showing text in every colour of the theme](https://raw.githubusercontent.com/phalt/zoetty/main/docs/images/themes.png)
+
+See [all the themes](https://phalt.github.io/zoetty/themes/), and how to make your own.
+
 ## Use it with your coding agent
 
 zoetty is easy for coding agents to drive: specs are small text files, and every command says what it did. Paste this into Claude Code, Codex, Cursor or similar:
