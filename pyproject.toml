@@ -1,6 +1,6 @@
 [project]
 name = "zoetty"
-version = "0.1.0"
+version = "0.2.0"
 description = "Looping terminal demo clips as plain SVG or HTML and CSS"
 readme = "README.md"
 authors = [{ name = "Paul Hallett", email = "paulandrewhallett@gmail.com" }]
