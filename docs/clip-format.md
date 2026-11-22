@@ -30,6 +30,25 @@ lines = ["README.md  src  tests"]
 | `hold` | `4.0` | Seconds the last frame is held before the clip loops. |
 | `duration` | worked out | Total loop length in seconds, if you'd rather set it. |
 | `chrome` | `true` | Draw the window bar with its dots and title. |
+| `loop` | `true` | `true` loops for ever. `false` plays once, and a number plays that many times; then the clip stays on its final frame so people can read it. See [play once](#play-once). |
+| `pause_on_hover` | `false` | Pause while the pointer is over the screen, or while it has focus (a keyboard user tabbing to it, or a tap on a touch screen). Works for HTML clips and inline SVGs, not SVGs shown as images. See [embedding](embedding.md#pausing-to-read). |
+
+## Play once
+
+A looping clip fades out and starts again just as people get to the end. If the end is what matters, let the clip stop there:
+
+```toml
+label = "Building a client, then listing what it wrote"
+loop = false
+
+[[run]]
+cmd = "ls my_client"
+lines = ["client.py  schemas.py"]
+```
+
+`loop = 3` plays three times and then stops. Either way, the last play doesn't fade: the clip stays on its final frame with the caret blinking. HTML clips that stop show a [replay button](embedding.md#html-the-replay-button) when they finish.
+
+An animation in an image starts when the page loads, not when it's scrolled into view, so a clip far down a long page may have finished before anyone sees it. [Embedding](embedding.md#replaying-a-clip) has ways to replay it.
 
 ## `[[run]]`: commands
 

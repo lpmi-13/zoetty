@@ -1,5 +1,11 @@
 # Change log
 
+## 0.2.0
+
+- `loop = false` plays a clip once and `loop = 3` plays it three times, then it stays on its final frame so people can read the end.
+- `pause_on_hover = true` pauses an HTML clip or inline SVG while the pointer is over it or it has focus.
+- HTML clips that stop show a CSS-only replay button once they finish.
+
 ## 0.1.0
 
 The first release.

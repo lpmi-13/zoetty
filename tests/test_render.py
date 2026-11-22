@@ -118,3 +118,87 @@ def test_typed_text_in_steps(spec, render):
     )
     out = render(clip, timeline.build(clip), "zt-x")
     assert out.count("steps(1,end)") == 2
+
+
+def built(spec, extra: str, render, name: str = "zt-x") -> str:
+    clip = load(spec(extra + "\n" + SPEC))
+    return render(clip, timeline.build(clip), name)
+
+
+@pytest.mark.parametrize("render", [svg.render, html.render])
+def test_clips_loop_for_ever_by_default(spec, render):
+    out = built(spec, "", render)
+    assert "animation-iteration-count:infinite;" in out and "forwards" not in out
+
+
+@pytest.mark.parametrize("render", [svg.render, html.render])
+def test_loop_true_builds_exactly_as_the_default(spec, render):
+    assert built(spec, "loop = true", render) == built(spec, "", render)
+
+
+@pytest.mark.parametrize("render", [svg.render, html.render])
+@pytest.mark.parametrize(("loop", "plays"), [("false", 1), ("3", 3)])
+def test_clips_that_stop_end_on_the_full_final_frame(spec, render, loop, plays):
+    out = built(spec, f"loop = {loop}", render)
+    assert f"animation-iteration-count:{plays};animation-fill-mode:forwards;" in out
+    assert "infinite;" not in out.replace("step-end infinite", "")  # only the caret blink repeats for ever
+    # The fade runs before every replay but not after the last play, and doesn't hold its faded end.
+    assert f"animation-name:zt-x-fade;animation-iteration-count:{plays - 1};animation-fill-mode:none" in out
+
+
+@pytest.mark.parametrize("render", [svg.render, html.render])
+def test_the_final_caret_stays_once_the_clip_stops(spec, render):
+    looping, once = built(spec, "", render), built(spec, "loop = false", render)
+    final = len(timeline.build(load(spec(SPEC))).lines) - 1
+    assert re.search(rf"@keyframes zt-x-k{final}\{{[^\n]*100%\{{opacity:0\}}\}}", looping)
+    # It must say 100%: without it, the end falls back to the caret's hidden base style.
+    assert re.search(rf"@keyframes zt-x-k{final}\{{0%\{{opacity:0\}}[\d.]+%,100%\{{opacity:1\}}\}}", once)
+    # Earlier carets still go when the next line appears.
+    assert re.search(r"@keyframes zt-x-k0\{[^\n]*100%\{opacity:0\}\}", once)
+
+
+@pytest.mark.parametrize("render", [svg.render, html.render])
+def test_clips_dont_pause_on_hover_by_default(spec, render):
+    out = built(spec, "", render)
+    assert "play-state" not in out and "tabindex" not in out
+    assert built(spec, "pause_on_hover = false", render) == out
+
+
+def test_svg_pauses_on_hover_and_focus(spec):
+    out = built(spec, "pause_on_hover = true", svg.render)
+    assert re.search(r'<svg [^>]*tabindex="0"', out)
+    assert "svg:hover .a,svg:focus .a{animation-play-state:paused}" in out
+
+
+def test_html_pauses_on_hover_and_focus_of_the_screen(spec):
+    out = built(spec, "pause_on_hover = true", html.render)
+    # The screen takes focus (keyboard, or a tap on a touch screen) and carries the image role and label.
+    assert out.startswith('<div class="zt-x">')
+    assert '<div class="zt-x-screen" role="img" aria-label="A demo &amp; &lt;friends&gt;" tabindex="0" style=' in out
+    # Everything pauses, the replay button's timer included, so it can't show before the clip ends.
+    assert ".zt-x:has(.zt-x-screen:hover) *,.zt-x:has(.zt-x-screen:focus) *{animation-play-state:paused}" in out
+
+
+def test_looping_html_clips_have_no_replay_button(spec):
+    assert "replay" not in built(spec, "", html.render)
+
+
+def test_html_clips_that_stop_get_a_replay_button_once_every_play_is_done(spec):
+    clip = load(spec("loop = 3\n" + SPEC))
+    out = html.render(clip, timeline.build(clip), "zt-x")
+    total = timeline.build(clip).duration
+    # The screen is the image, so the button beside it isn't hidden from assistive tech.
+    assert out.startswith('<div class="zt-x">')
+    assert '<div class="zt-x-screen" role="img" aria-label="A demo &amp; &lt;friends&gt;" style=' in out
+    assert '<button type="button" class="zt-x-replay"><span aria-hidden="true">↻</span> Replay</button>' in out
+    assert f".zt-x-replay{{visibility:hidden;animation:zt-x-done 0s {round(3 * total, 3):g}s forwards" in out
+    assert "@keyframes zt-x-done{to{visibility:visible}}" in out
+    # A keyboard user's focus stays on the button through a replay, instead of dropping to the page.
+    assert ".zt-x-replay:focus-visible{visibility:visible}" in out
+    # Holding the button removes every animation; letting go starts them all again, the button's timer too.
+    assert ".zt-x:has(.zt-x-replay:active) *{animation-name:none!important}" in out
+    assert re.search(r"prefers-reduced-motion:reduce\)\{[^\n]*\.zt-x-replay\{display:none\}", out)
+
+
+def test_svg_has_no_replay_button(spec):
+    assert "replay" not in built(spec, "loop = false", svg.render).lower()
